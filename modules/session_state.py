@@ -5,12 +5,22 @@ Maintains synchronized audit history, moderator statuses, and configuration acro
 
 import streamlit as st
 import pandas as pd
+import os
 from datetime import datetime
 from modules.data_loader import generate_benchmark_dataset
 
 
+def load_custom_css():
+    """Injects high-contrast cybersecurity light theme CSS across all page renders."""
+    css_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "style.css")
+    if os.path.exists(css_path):
+        with open(css_path, "r", encoding="utf-8") as f:
+            st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+
 def init_session_state():
     """Initializes shared session state variables if not already set."""
+    load_custom_css()
     if "audit_history" not in st.session_state:
         # Pre-populate with a few realistic demonstration audit records
         st.session_state.audit_history = [

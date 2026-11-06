@@ -86,44 +86,58 @@ PRESETS = {
     }
 }
 
-col_preset, col_mode = st.columns([3, 2])
+# Mode and Preset Controls
+col_preset, col_mode = st.columns([1, 1])
 with col_preset:
-    chosen_preset = st.selectbox("⚡ Quick Demo Presets (1-Click Test Cases)", list(PRESETS.keys()))
+    chosen_preset = st.selectbox(
+        "⚡ 1-Click Demonstration Scenarios",
+        list(PRESETS.keys()),
+        help="Pre-fills representative human, bot, and scam accounts for rapid hackathon judging.",
+    )
 
 with col_mode:
-    input_mode = st.radio("Acquisition Mode", ["Manual Input", "Live API Lookup"], horizontal=True)
+    input_mode = st.radio(
+        "Data Acquisition Source",
+        ["Manual & Preset Evaluation", "Live Platform API Lookup"],
+        horizontal=True,
+    )
 
-# Preset data filler
 preset_data = PRESETS.get(chosen_preset) if chosen_preset != "Select a preset scenario..." else None
 
-# Form Fields
-with st.container():
-    st.markdown("<div style='background:#FFFFFF; border:1px solid #E2E8F0; border-radius:10px; padding:20px; margin-bottom:20px;'>", unsafe_allow_html=True)
+# Check session state for fetched live data
+if "fetched_live_data" not in st.session_state:
+    st.session_state.fetched_live_data = None
+    st.session_state.fetched_source_label = "Manual Input"
+
+# Container for Profile Parameters Card
+with st.container(border=True):
+    st.markdown("<h4 style='color:#0F2942; margin-top:0; margin-bottom:14px; font-weight:700;'>Account Profile Telemetry</h4>", unsafe_allow_html=True)
     
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns([2, 1.5, 1.5])
     with col1:
         default_username = preset_data["username"] if preset_data else "alex_rivers"
-        username_input = st.text_input("Username / Handle", value=default_username, placeholder="e.g. johndoe")
+        username_input = st.text_input("Account Username / Handle", value=default_username, placeholder="e.g. johndoe")
     
     with col2:
         default_platform_idx = ["X (Twitter)", "Instagram", "Facebook", "Other"].index(preset_data["platform"]) if preset_data else 0
-        platform_input = st.selectbox("Platform", ["X (Twitter)", "Instagram", "Facebook", "Other"], index=default_platform_idx)
+        platform_input = st.selectbox("Social Network Platform", ["X (Twitter)", "Instagram", "Facebook", "Other"], index=default_platform_idx)
     
     with col3:
         default_date = preset_data["creation_date"] if preset_data else date.today() - timedelta(days=730)
-        creation_date_input = st.date_input("Account Creation Date", value=default_date)
+        creation_date_input = st.date_input("Registration / Creation Date", value=default_date)
 
-    # Check session state for fetched live data
-    if "fetched_live_data" not in st.session_state:
-        st.session_state.fetched_live_data = None
-        st.session_state.fetched_source_label = "Manual Input"
+    # Live API Telemetry trigger if Live API mode selected
+    if input_mode == "Live Platform API Lookup":
+        st.markdown("""
+        <div style="background:#EFF6FF; border:1px solid #BFDBFE; border-radius:8px; padding:10px 14px; margin:10px 0; font-size:13px; color:#1E40AF;">
+            ⚡ <b>Live Gateway Active:</b> SocialCrawl multi-platform API key is connected. Querying handles pulls live follower counts, post activity, and verification badges in real-time.
+        </div>
+        """, unsafe_allow_html=True)
 
-    if input_mode == "Live API Lookup":
-        st.info("ℹ️ Live API mode utilizes the SocialCrawl multi-platform intelligence gateway (active) and official platform APIs.")
-        col_api_btn, col_api_status = st.columns([1, 2])
+        col_api_btn, col_api_status = st.columns([1.5, 3.5])
         with col_api_btn:
-            if st.button("🌐 Fetch Live Profile Telemetry", type="primary"):
-                with st.spinner(f"Connecting to {platform_input} API for @{username_input}..."):
+            if st.button("🌐 Fetch Live Telemetry", type="primary", use_container_width=True):
+                with st.spinner(f"Connecting to live {platform_input} endpoint for @{username_input}..."):
                     if platform_input == "X (Twitter)":
                         data_fetched, source_lbl, msg = fetch_x_account(username_input)
                     elif platform_input == "Instagram":
@@ -131,7 +145,7 @@ with st.container():
                     elif platform_input == "Facebook":
                         data_fetched, source_lbl, msg = fetch_facebook_account(username_input)
                     else:
-                        data_fetched, source_lbl, msg = None, "Manual Input", "No live API endpoint configured for this platform."
+                        data_fetched, source_lbl, msg = None, "Manual Input", "No live endpoint for selected platform."
 
                     if data_fetched:
                         st.session_state.fetched_live_data = data_fetched
@@ -148,34 +162,35 @@ with st.container():
     live_data = st.session_state.fetched_live_data
     data_source_label = st.session_state.fetched_source_label
 
-    # Metrics inputs
+    # Profile Engagement & Network Metrics
+    st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
     col_m1, col_m2, col_m3 = st.columns(3)
     with col_m1:
         def_followers = live_data.get("followers_count") if live_data else (preset_data["followers"] if preset_data else 850)
-        followers_input = st.number_input("Followers Count", min_value=0, max_value=1000000000, value=int(def_followers), step=10)
+        followers_input = st.number_input("Audience: Followers Count", min_value=0, max_value=1000000000, value=int(def_followers), step=50)
 
     with col_m2:
         def_following = live_data.get("following_count") if live_data else (preset_data["following"] if preset_data else 320)
-        following_input = st.number_input("Following Count", min_value=0, max_value=50000000, value=int(def_following), step=10)
+        following_input = st.number_input("Outbound: Following Count", min_value=0, max_value=50000000, value=int(def_following), step=50)
 
     with col_m3:
         def_posts = live_data.get("total_posts") if live_data else (preset_data["posts"] if preset_data else 450)
-        total_posts_input = st.number_input("Total Posts / Tweets", min_value=0, max_value=5000000, value=int(def_posts), step=10)
+        total_posts_input = st.number_input("Activity: Total Published Posts", min_value=0, max_value=5000000, value=int(def_posts), step=25)
 
-    col_b1, col_b2, col_b3 = st.columns([3, 1, 1])
-    with col_b1:
+    # Bio and flags
+    st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
+    col_bio, col_flags = st.columns([3, 2])
+    with col_bio:
         def_bio = live_data.get("description") if live_data else (preset_data["bio"] if preset_data else "Building things with code, coffee, and AI.")
-        bio_input = st.text_area("Profile Biography / Description", value=def_bio, height=68)
+        bio_input = st.text_area("Profile Biography / Description", value=def_bio, height=85)
 
-    with col_b2:
+    with col_flags:
+        st.markdown("<p style='font-size:13.5px; font-weight:700; color:#0F172A; margin-bottom:8px;'>Account Credential Badges</p>", unsafe_allow_html=True)
         def_pic = bool(live_data.get("has_profile_picture", 1)) if live_data else (preset_data["has_pic"] if preset_data else True)
-        has_pic_input = st.checkbox("Has Custom Avatar", value=def_pic)
+        has_pic_input = st.checkbox("Profile Avatar Uploaded (Not Default)", value=def_pic)
 
-    with col_b3:
         def_ver = bool(live_data.get("is_verified", 0)) if live_data else (preset_data["verified"] if preset_data else False)
-        is_verified_input = st.checkbox("Verified Badge", value=def_ver)
-
-    st.markdown("</div>", unsafe_allow_html=True)
+        is_verified_input = st.checkbox("Verified Identity Badge (Platform Blue/Gold)", value=def_ver)
 
 # Analyze Button
 analyze_pressed = st.button("🛡️ Run SocialShield Risk Assessment", type="primary", use_container_width=True)
