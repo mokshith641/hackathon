@@ -1,11 +1,12 @@
 """
 Platform Data Adapters for SocialShield AI
 Integrates live platform APIs (SocialCrawl Multi-Platform Gateway, Official X API, Instagram Graph API)
-with robust error handling, rate limiting protection, and transparent fallback to manual mode.
+with automatic profile URL parsing, avatar extraction, and transparent fallback to manual mode.
 """
 
 import os
 import requests
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 from typing import Dict, Any, Tuple, Optional
 
@@ -13,6 +14,50 @@ from typing import Dict, Any, Tuple, Optional
 load_dotenv()
 
 DEFAULT_SOCIALCRAWL_KEY = os.environ.get("SOCIALCRAWL_API_KEY", "sc_cNrHCotdgNlxvfP9H71NVhufAkKRkLcFs9JuKHMz_D4")
+
+
+def parse_profile_url(raw: str) -> Tuple[str, str]:
+    """
+    Extracts platform and clean username handle from any social media URL or raw handle.
+    Supports:
+      - https://x.com/elonmusk -> ('X (Twitter)', 'elonmusk')
+      - https://twitter.com/jack?lang=en -> ('X (Twitter)', 'jack')
+      - https://www.instagram.com/nasa/ -> ('Instagram', 'nasa')
+      - instagram.com/cristiano -> ('Instagram', 'cristiano')
+      - @ylecun -> ('X (Twitter)', 'ylecun')
+      - elonmusk -> ('X (Twitter)', 'elonmusk')
+    """
+    s = str(raw or "").strip()
+    if not s:
+        return "X (Twitter)", ""
+
+    if s.startswith("@"):
+        return "X (Twitter)", s.lstrip("@").strip()
+
+    # Prepend scheme if domain was typed directly without https://
+    if not (s.startswith("http://") or s.startswith("https://")):
+        if "instagram.com" in s.lower():
+            s = "https://" + s
+        elif "twitter.com" in s.lower() or "x.com" in s.lower():
+            s = "https://" + s
+        else:
+            return "X (Twitter)", s.lstrip("@").strip()
+
+    try:
+        parsed = urlparse(s)
+        domain = parsed.netloc.lower()
+        parts = [p for p in parsed.path.strip("/").split("/") if p]
+        handle = parts[0] if parts else ""
+
+        if "twitter.com" in domain or "x.com" in domain:
+            return "X (Twitter)", handle
+        elif "instagram.com" in domain:
+            return "Instagram", handle
+        elif "facebook.com" in domain:
+            return "Facebook", handle
+        return "Other", handle
+    except Exception:
+        return "X (Twitter)", s.lstrip("@").strip()
 
 
 def fetch_x_account(
@@ -26,7 +71,7 @@ def fetch_x_account(
     """
     clean_username = username.strip().lstrip("@")
     if not clean_username:
-        return None, "Manual Input", "Please provide a valid username."
+        return None, "Manual Input", "Please provide a valid username or profile URL."
 
     sc_key = socialcrawl_key if socialcrawl_key is not None else (os.environ.get("SOCIALCRAWL_API_KEY") or DEFAULT_SOCIALCRAWL_KEY)
 
@@ -48,12 +93,14 @@ def fetch_x_account(
                     has_pic = 0 if "default_profile_images" in avatar or not avatar else 1
                     account_data = {
                         "username": author.get("username", clean_username),
+                        "display_name": author.get("display_name", clean_username),
                         "platform": "X (Twitter)",
                         "created_at": author.get("joined_at"),
                         "followers_count": author.get("followers", 0),
                         "following_count": author.get("following", 0),
                         "total_posts": author.get("posts_count", 0),
                         "description": author.get("bio", ""),
+                        "avatar_url": avatar,
                         "has_profile_picture": has_pic,
                         "is_verified": 1 if author.get("verified", False) else 0,
                         "data_source": "Live API",
@@ -80,12 +127,14 @@ def fetch_x_account(
                 has_default_img = "default_profile_images" in data.get("profile_image_url", "")
                 account_data = {
                     "username": data.get("username", clean_username),
+                    "display_name": data.get("name", clean_username),
                     "platform": "X (Twitter)",
                     "created_at": data.get("created_at"),
                     "followers_count": metrics.get("followers_count", 0),
                     "following_count": metrics.get("following_count", 0),
                     "total_posts": metrics.get("tweet_count", 0),
                     "description": data.get("description", ""),
+                    "avatar_url": data.get("profile_image_url", ""),
                     "has_profile_picture": 0 if has_default_img else 1,
                     "is_verified": 1 if data.get("verified", False) else 0,
                     "data_source": "Live API",
@@ -107,9 +156,9 @@ def fetch_instagram_account(
     """
     clean_username = username.strip().lstrip("@")
     if not clean_username:
-        return None, "Manual Input", "Please provide a valid username."
+        return None, "Manual Input", "Please provide a valid username or profile URL."
 
-    sc_key = socialcrawl_key or os.environ.get("SOCIALCRAWL_API_KEY") or DEFAULT_SOCIALCRAWL_KEY
+    sc_key = socialcrawl_key if socialcrawl_key is not None else (os.environ.get("SOCIALCRAWL_API_KEY") or DEFAULT_SOCIALCRAWL_KEY)
 
     if sc_key and sc_key.strip():
         url = f"https://www.socialcrawl.dev/v1/instagram/profile?handle={clean_username}"
@@ -128,12 +177,14 @@ def fetch_instagram_account(
                     has_pic = 1 if avatar and "44884218_345707102882519_2446069589734326272_n.jpg" not in avatar else 1
                     account_data = {
                         "username": author.get("username", clean_username),
+                        "display_name": author.get("display_name", clean_username),
                         "platform": "Instagram",
                         "created_at": None,
                         "followers_count": author.get("followers", 0),
                         "following_count": author.get("following", 0),
                         "total_posts": author.get("posts_count", 0),
                         "description": author.get("bio", ""),
+                        "avatar_url": avatar,
                         "has_profile_picture": has_pic,
                         "is_verified": 1 if author.get("verified", False) else 0,
                         "data_source": "Live API",
@@ -148,7 +199,16 @@ def fetch_instagram_account(
 
 
 def fetch_facebook_account(page_id: str, access_token: Optional[str] = None) -> Tuple[Optional[dict], str, str]:
-    """
-    Placeholder for authorized Facebook Page Graph API.
-    """
+    """Placeholder for authorized Facebook Page Graph API."""
     return None, "Manual Input", "Facebook Page Graph token requires Page Read engagement permissions. Switched to manual input."
+
+
+def fetch_by_url_or_handle(url_or_handle: str) -> Tuple[Optional[dict], str, str]:
+    """Parses any social media profile URL or handle and fetches telemetry automatically."""
+    platform, handle = parse_profile_url(url_or_handle)
+    if platform == "Instagram":
+        return fetch_instagram_account(handle)
+    elif platform == "Facebook":
+        return fetch_facebook_account(handle)
+    else:
+        return fetch_x_account(handle)

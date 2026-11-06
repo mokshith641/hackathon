@@ -178,8 +178,8 @@ with col_summary_right:
             <span style="font-weight:700; color:#DC2626;">88.5 / 100</span>
         </div>
         <div style="margin-top:14px;">
-            <a href="/Network_Intelligence" target="_self" style="display:block; text-align:center; background:#0F2942; color:#FFFFFF; text-decoration:none; padding:8px 12px; border-radius:6px; font-size:12px; font-weight:600;">
-                Inspect Graph in Network Intelligence →
+            <a href="/Account_Analyzer" target="_self" style="display:block; text-align:center; background:#0F2942; color:#FFFFFF; text-decoration:none; padding:8px 12px; border-radius:6px; font-size:12px; font-weight:700;">
+                Analyze Profile URL Now →
             </a>
         </div>
     </div>

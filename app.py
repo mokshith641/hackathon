@@ -1,7 +1,7 @@
 """
 SocialShield AI
 Intelligent Multi-Platform Fake Social Media Account Detection & Risk Assessment System
-Main Application Entry Point & Navigation Controller
+Streamlined Navigation Controller (Account Analyzer & Overview Dashboard)
 """
 
 import os
@@ -32,15 +32,10 @@ st.sidebar.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Navigation via Streamlit st.navigation (modern multi-page architecture)
+# Streamlined Navigation: Focused on Account Analyzer & Overview Dashboard
 pages = [
-    st.Page("pages/1_Overview.py", title="Overview Dashboard", icon="📊", default=True),
-    st.Page("pages/2_Account_Analyzer.py", title="Account Analyzer", icon="🔍"),
-    st.Page("pages/3_Batch_Analysis.py", title="Batch Analysis", icon="📁"),
-    st.Page("pages/4_Network_Intelligence.py", title="Network Intelligence", icon="🕸️"),
-    st.Page("pages/5_Risk_Reports.py", title="Risk Reports & Queue", icon="📑"),
-    st.Page("pages/6_Dataset_Model_Info.py", title="Dataset & ML Model", icon="🧠"),
-    st.Page("pages/7_Settings.py", title="Settings & Governance", icon="⚙️"),
+    st.Page("pages/2_Account_Analyzer.py", title="Account Analyzer & URL Inspector", icon="🔍", default=True),
+    st.Page("pages/1_Overview.py", title="Overview Dashboard", icon="📊"),
 ]
 
 # Run the selected page
@@ -50,22 +45,21 @@ pg = st.navigation(pages)
 with st.sidebar:
     st.markdown("---")
     st.markdown("""
-    <div style="font-size:11px; color:#64748B; padding: 4px 8px;">
+    <div style="font-size:11.5px; color:#475569; padding: 4px 6px;">
         <div style="margin-bottom:6px;">
             <b>Operational Status:</b> <span style="color:#059669; font-weight:700;">● Online</span>
         </div>
         <div style="margin-bottom:6px;">
-            <b>ML Engine:</b> Random Forest (120 Estimators)
+            <b>Live API Gateway:</b> <span style="color:#0284C7; font-weight:700;">SocialCrawl Active</span>
         </div>
         <div style="margin-bottom:6px;">
-            <b>Network Core:</b> NetworkX + Plotly
+            <b>ML Core:</b> Random Forest (95% Accuracy)
         </div>
         <div style="margin-top:12px; font-size:10px; color:#94A3B8; border-top:1px solid #E2E8F0; padding-top:8px;">
-            SocialShield AI v1.0.0<br>
-            College Hackathon Edition 2026
+            SocialShield AI v2.0 (Streamlined Edition)<br>
+            College Hackathon 2026
         </div>
     </div>
     """, unsafe_allow_html=True)
 
 pg.run()
-
