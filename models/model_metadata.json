@@ -1,0 +1,120 @@
+{
+  "dataset_name": "Instagram Spammers Benchmark (train.csv)",
+  "is_synthetic": false,
+  "trained_at": "2026-11-06 14:17:04",
+  "total_samples": 576,
+  "train_samples": 432,
+  "test_samples": 144,
+  "metrics": {
+    "accuracy": 0.9167,
+    "precision": 0.9167,
+    "recall": 0.9167,
+    "f1_score": 0.9167,
+    "roc_auc": 0.9735,
+    "cv_f1_mean": 0.9324
+  },
+  "confusion_matrix": [
+    [
+      66,
+      6
+    ],
+    [
+      6,
+      66
+    ]
+  ],
+  "roc_curve": {
+    "fpr": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0139,
+      0.0139,
+      0.0417,
+      0.0417,
+      0.0972,
+      0.0972,
+      0.125,
+      0.125,
+      0.1389,
+      0.1389,
+      0.4444,
+      0.4444,
+      0.4722,
+      0.4861,
+      0.6667,
+      1.0
+    ],
+    "tpr": [
+      0.0,
+      0.2222,
+      0.2361,
+      0.3056,
+      0.3194,
+      0.375,
+      0.4028,
+      0.4306,
+      0.4722,
+      0.4722,
+      0.875,
+      0.875,
+      0.9167,
+      0.9167,
+      0.9444,
+      0.9444,
+      0.9583,
+      0.9583,
+      0.9722,
+      0.9722,
+      0.9861,
+      0.9861,
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "feature_importances": {
+    "followers_count": 0.2083,
+    "posts_per_day": 0.1673,
+    "total_posts": 0.128,
+    "has_profile_picture": 0.1165,
+    "username_digit_ratio": 0.0913,
+    "reputation_ratio": 0.083,
+    "follower_following_ratio": 0.0755,
+    "description_length": 0.0521,
+    "following_count": 0.0429,
+    "has_profile_description": 0.035,
+    "account_age_days": 0.0,
+    "username_length": 0.0,
+    "username_digits_count": 0.0,
+    "is_verified": 0.0
+  },
+  "feature_columns": [
+    "account_age_days",
+    "followers_count",
+    "following_count",
+    "follower_following_ratio",
+    "reputation_ratio",
+    "total_posts",
+    "posts_per_day",
+    "has_profile_description",
+    "description_length",
+    "has_profile_picture",
+    "username_length",
+    "username_digits_count",
+    "username_digit_ratio",
+    "is_verified"
+  ],
+  "parameters": {
+    "n_estimators": 120,
+    "max_depth": 12,
+    "class_weight": "balanced",
+    "random_state": 42
+  }
+}
